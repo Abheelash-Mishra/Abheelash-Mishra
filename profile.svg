@@ -107,19 +107,19 @@
             
                             <text x="50" y="526.0" font-size="18" font-weight="600" fill="#FCEE0A">Repositories</text>
                             <text x="146" y="526.0" fill="#30363D">.....................</text>
-                            <text x="319" y="526.0" font-size="18" fill="#58A6FF">25</text>
+                            <text x="319" y="526.0" font-size="18" fill="#58A6FF">37</text>
                         
                             <text x="369.0" y="526.0" font-size="18" font-weight="600" fill="#FCEE0A">Commits</text>
-                            <text x="425.0" y="526.0" fill="#30363D">.........................</text>
-                            <text x="630.0" y="526.0" font-size="18" fill="#58A6FF">120</text>
+                            <text x="425.0" y="526.0" fill="#30363D">..........................</text>
+                            <text x="638.0" y="526.0" font-size="18" fill="#58A6FF">88</text>
                         
                             <text x="50" y="554.0" font-size="18" font-weight="600" fill="#FCEE0A">LOC Count</text>
                             <text x="122" y="554.0" fill="#30363D">......................</text>
-                            <text x="303" y="554.0" font-size="18" fill="#58A6FF">5000</text>
+                            <text x="303" y="554.0" font-size="18" fill="#58A6FF">2286</text>
                         
                             <text x="369.0" y="554.0" font-size="18" font-weight="600" fill="#FCEE0A">Profile Views</text>
-                            <text x="473.0" y="554.0" fill="#30363D">.....................</text>
-                            <text x="646.0" y="554.0" font-size="18" fill="#58A6FF">2</text>
+                            <text x="473.0" y="554.0" fill="#30363D">....................</text>
+                            <text x="638.0" y="554.0" font-size="18" fill="#58A6FF">15</text>
                         
                 </g>
               </g>
