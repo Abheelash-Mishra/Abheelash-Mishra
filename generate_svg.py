@@ -6,7 +6,7 @@ import base64
 
 # ===== CONFIGURATION =====
 INPUT_FILE = "ascii-art.txt"
-OUTPUT_FILE = "output.svg"
+OUTPUT_FILE = "profile.svg"
 FONT_SIZE = 18
 TEXT_COLOR = "#3A7DD1"
 BACKGROUND_COLOR = "#0D1117"

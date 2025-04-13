@@ -30,7 +30,7 @@ jobs:
           CURRENT_DATE=$(date +'%d/%m/%y')
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
-          git add output/my_profile.svg
+          git add profile.svg
           git commit -m "Update Profile - ${CURRENT_DATE}" || echo "No changes"
           git push
         env:
