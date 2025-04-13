@@ -45,20 +45,54 @@ CONTENT = {
     },
 }
 
-def count_all_commits(username, repo_name, headers):
-    total = 0
-    page = 1
+def get_commit_count(username, repo_name, headers):
+    total_commits = 0
+    end_cursor = None
+
+    query = '''
+    query($owner: String!, $repo: String!, $endCursor: String) {
+      repository(owner: $owner, name: $repo) {
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 100, after: $endCursor) {
+                totalCount
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                }
+              }
+            }
+          }
+        }
+      }
+    }'''
+
     while True:
-        url = f"https://api.github.com/repos/{username}/{repo_name}/commits?per_page=100&page={page}"
-        resp = requests.get(url, headers=headers)
-        if resp.status_code != 200:
+        variables = {
+            'owner': username,
+            'repo': repo_name,
+            'endCursor': end_cursor
+        }
+
+        url = 'https://api.github.com/graphql'
+        response = requests.post(url, json={'query': query, 'variables': variables}, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            commits_page = data['data']['repository']['defaultBranchRef']['target']['history']
+            total_commits += commits_page['totalCount']
+
+            if commits_page['pageInfo']['hasNextPage']:
+                end_cursor = commits_page['pageInfo']['endCursor']
+            else:
+                break
+        else:
+            print(f"Error: {response.status_code}")
             break
-        commits = resp.json()
-        if not commits:
-            break
-        total += len(commits)
-        page += 1
-    return total
+
+    return total_commits
 
 
 def fetch_github_stats_with_loc(username, token=None):
@@ -93,7 +127,7 @@ def fetch_github_stats_with_loc(username, token=None):
         default_branch = repo.get("default_branch", "main")
 
         # Count commits using pagination
-        total_commits += count_all_commits(username, repo_name, headers)
+        total_commits += get_commit_count(username, repo_name, headers)
 
         # Fetch tree to count LOC
         tree_url = f"https://api.github.com/repos/{username}/{repo_name}/git/trees/{default_branch}?recursive=1"
