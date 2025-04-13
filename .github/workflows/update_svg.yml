@@ -25,11 +25,12 @@ jobs:
       - name: Generate SVG
         run: python generate_svg.py
 
-      - name: Commit and Push SVG
+      - name: Commit and Push if Changed
         run: |
           CURRENT_DATE=$(date +'%d/%m/%y')
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GH_KEY }}@github.com/${{ github.repository }}
           git add profile.svg
           git commit -m "Update Profile - ${CURRENT_DATE}" || echo "No changes"
           git push
