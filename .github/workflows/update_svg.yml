@@ -26,6 +26,8 @@ jobs:
 
       - name: Generate SVG
         run: python generate_svg.py
+        env:
+          GH_KEY: ${{ secrets.GH_KEY }}
 
       - name: Commit and Push if Changed
         run: |
