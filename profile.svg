@@ -115,11 +115,11 @@
                         
                             <text x="50" y="554.0" font-size="18" font-weight="600" fill="#FCEE0A">LOC Count</text>
                             <text x="122" y="554.0" fill="#30363D">......................</text>
-                            <text x="303" y="554.0" font-size="18" fill="#58A6FF">2404</text>
+                            <text x="303" y="554.0" font-size="18" fill="#58A6FF">2446</text>
                         
                             <text x="369.0" y="554.0" font-size="18" font-weight="600" fill="#FCEE0A">Profile Views</text>
                             <text x="473.0" y="554.0" fill="#30363D">....................</text>
-                            <text x="638.0" y="554.0" font-size="18" fill="#58A6FF">31</text>
+                            <text x="638.0" y="554.0" font-size="18" fill="#58A6FF">35</text>
                         
                 </g>
               </g>
