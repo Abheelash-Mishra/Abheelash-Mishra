@@ -89,7 +89,7 @@ def get_commit_count(username, repo_name, headers):
             else:
                 break
         else:
-            print(f"Error: {response.status_code}")
+            print(f"Error Code: {response.status_code} || {response.text}")
             break
 
     return total_commits
