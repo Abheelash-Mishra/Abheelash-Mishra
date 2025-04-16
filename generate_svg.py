@@ -18,7 +18,7 @@ ABOUT_TEXT_COLOR = "#58A6FF"
 YELLOW_COLOR = "#FCEE0A"
 DOT_COLOR = "#30363D"
 SECTION_SPACING = 30
-LINE_HEIGHT = 28
+LINE_HEIGHT = 30
 
 USERNAME = "Abheelash-Mishra"
 TOKEN = os.getenv("GH_KEY")
@@ -30,12 +30,12 @@ CONTENT = {
         "Passion": "To Learn, Explore, and Solve",
     },
     "My Technical Stuff": {
-        "Languages": "Python, Java, JavaScript, SQL, C, C++",
+        "Languages": "Python, Java, JavaScript, SQL, C++, C",
         "Frontend": "JavaScript, React.js, Next.js",
         "Backend": "Node.js, Express.js, Spring Boot",
         "Dev Tools": "Git, Docker",
         "Databases": "MySQL, PostgreSQL, MongoDB, H2",
-        "Cloud Platforms": "AWS, Oracle Cloud, Google Cloud",
+        "Cloud Platforms": "AWS, OCI, GCP",
     },
     "GitHub Stats": {
         "Repositories": "N/A",
@@ -219,13 +219,14 @@ def create_split_svg():
         current_y = start_y
         for section, items in CONTENT.items():
             # Section header
+            current_y += 20
             svg_content += f'''
                 <text x="{right_panel_width / 2}" y="{current_y + 8}" 
-                    font-size="20" font-weight="800" fill="{YELLOW_COLOR}" 
+                    font-size="22" font-weight="800" fill="{YELLOW_COLOR}" 
                     text-anchor="middle">{section.upper()}</text>
             '''
 
-            current_y += LINE_HEIGHT + 10
+            current_y += LINE_HEIGHT + 20
 
             if section == "GitHub Stats":
                 item_list = list(items.items())
@@ -247,27 +248,39 @@ def create_split_svg():
                         dot_count = max(int(dots_width // 8), 0)
 
                         svg_content += f'''
-                            <text x="{col_x}" y="{current_y}" font-size="18" font-weight="600" fill="{YELLOW_COLOR}">{label}</text>
+                            <text x="{col_x}" y="{current_y}" font-size="22" font-weight="600" fill="{YELLOW_COLOR}">{label}</text>
                             <text x="{col_x + label_width}" y="{current_y}" fill="{DOT_COLOR}">{'.' * dot_count}</text>
-                            <text x="{col_x + label_width + dot_count * 8 + 5}" y="{current_y}" font-size="18" fill="{ABOUT_TEXT_COLOR}">{value}</text>
+                            <text x="{col_x + label_width + dot_count * 8 + 5}" y="{current_y}" font-size="22" fill="{ABOUT_TEXT_COLOR}">{value}</text>
                         '''
                     current_y += LINE_HEIGHT
 
             else:
                 # Section items for non-GitHub Stats sections
                 for label, value in items.items():
-                    label_width = len(label) * 8.5
-                    dots_width = (right_panel_width - 100 - label_width - len(value)*7.5)
-                    dot_count = int(dots_width // 9) - 3
+                    label_x = 50
+                    label_font_size = 22
+                    approx_char_width = 8  # Estimate per character for label
+                    approx_val_width = 8   # Estimate per character for value
+                    value_x = right_panel_width - 50
+
+                    # Estimated widths
+                    label_width = len(label) * approx_char_width
+                    value_width = len(value) * approx_val_width
+
+                    dot_start_x = label_x + label_width + 30
+                    dot_end_x = value_x - value_width - 10
+                    dot_width = dot_end_x - dot_start_x
+                    dot_count = max(int(dot_width / 10), 0)
 
                     svg_content += f'''
-                        <text x="50" y="{current_y}" font-size="18" font-weight="600" fill="{YELLOW_COLOR}">{label}</text>
-                        <text x="{50 + label_width}" y="{current_y}" fill="{DOT_COLOR}">{"." * dot_count}</text>
-                        <text x="{right_panel_width - 50}" y="{current_y}" font-size="18" fill="{ABOUT_TEXT_COLOR}" text-anchor="end">{value}</text>
+                        <text x="{label_x}" y="{current_y}" font-size="{label_font_size}" font-weight="600" fill="{YELLOW_COLOR}">{label}</text>
+                        <text x="{dot_start_x}" y="{current_y}" fill="{DOT_COLOR}">{"." * dot_count}</text>
+                        <text x="{value_x}" y="{current_y}" font-size="{label_font_size}" fill="{ABOUT_TEXT_COLOR}" text-anchor="end">{value}</text>
                     '''
                     current_y += LINE_HEIGHT
 
-            current_y += SECTION_SPACING - LINE_HEIGHT + 30
+
+        current_y += SECTION_SPACING - LINE_HEIGHT + 30
 
         svg_content += '''
                 </g>
