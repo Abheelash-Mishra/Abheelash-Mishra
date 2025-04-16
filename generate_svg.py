@@ -142,7 +142,7 @@ def fetch_github_stats_with_loc(username, token=None):
                 continue
 
             path = obj["path"]
-            if any(path.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".exe", ".pdf", ".mp4", ".zip", ".tar", ".ico", ".json", ".svg"]):
+            if any(path.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".exe", ".pdf", ".mp4", ".zip", ".tar", ".ico", ".json", ".svg", ".txt"]):
                 continue
 
             blob_url = f"https://api.github.com/repos/{username}/{repo_name}/contents/{path}"
