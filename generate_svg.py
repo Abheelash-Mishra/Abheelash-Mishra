@@ -105,7 +105,14 @@ def fetch_github_stats_with_loc(username, token=None):
     repos_resp = requests.get(repos_url, headers=headers)
 
     if user_resp.status_code != 200 or repos_resp.status_code != 200:
-        raise Exception("GitHub API error")
+        print(
+            f"GitHub API error: user={user_resp.status_code}, repos={repos_resp.status_code}"
+        )
+        return {
+            "repos": 0,
+            "commits": 0,
+            "loc": 0,
+        }
 
     user_data = user_resp.json()
     repos_data = repos_resp.json()
@@ -323,4 +330,3 @@ if __name__ == '__main__':
     CONTENT["GitHub Stats"]["LOC Count"] = str(stats["loc"])
 
     create_split_svg()
-
