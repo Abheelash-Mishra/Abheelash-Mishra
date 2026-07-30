@@ -30,9 +30,9 @@ CONTENT = {
         "Passion": "To Learn, Explore, and Solve",
     },
     "My Technical Stuff": {
-        "Languages": "Python, Java, JavaScript, SQL, C++, C",
-        "Frontend": "JavaScript, React.js, Next.js",
-        "Backend": "Node.js, Express.js, Spring Boot",
+        "Languages": "Python, Java, JavaScript, SQL, C++",
+        "Frontend": "React.js, Next.js",
+        "Backend": "Express.js, Spring Boot, Quarkus",
         "Dev Tools": "Git, Docker",
         "Databases": "MySQL, PostgreSQL, MongoDB, H2",
         "Cloud Platforms": "AWS, OCI, GCP",
@@ -46,21 +46,16 @@ CONTENT = {
 }
 
 def get_commit_count(username, repo_name, headers):
-    total_commits = 0
-    end_cursor = None
-
+    """Get total commit count for a repo using GraphQL. totalCount already
+    represents the full history, so no pagination is needed."""
     query = '''
-    query($owner: String!, $repo: String!, $endCursor: String) {
+    query($owner: String!, $repo: String!) {
       repository(owner: $owner, name: $repo) {
         defaultBranchRef {
           target {
             ... on Commit {
-              history(first: 100, after: $endCursor) {
+              history {
                 totalCount
-                pageInfo {
-                  endCursor
-                  hasNextPage
-                }
               }
             }
           }
@@ -68,35 +63,42 @@ def get_commit_count(username, repo_name, headers):
       }
     }'''
 
-    while True:
-        variables = {
-            'owner': username,
-            'repo': repo_name,
-            'endCursor': end_cursor
-        }
+    variables = {
+        'owner': username,
+        'repo': repo_name,
+    }
 
-        url = 'https://api.github.com/graphql'
+    url = 'https://api.github.com/graphql'
+    try:
         response = requests.post(url, json={'query': query, 'variables': variables}, headers=headers)
 
-        if response.status_code == 200:
-            data = response.json()
-
-            commits_page = data['data']['repository']['defaultBranchRef']['target']['history']
-            total_commits += commits_page['totalCount']
-
-            if commits_page['pageInfo']['hasNextPage']:
-                end_cursor = commits_page['pageInfo']['endCursor']
-            else:
-                break
-        else:
+        if response.status_code != 200:
             print(f"Error Code: {response.status_code} || {response.text}")
-            break
+            return 0
 
-    return total_commits
+        data = response.json()
+
+        # Handle GraphQL-level errors
+        if 'errors' in data:
+            print(f"GraphQL errors for {repo_name}: {data['errors']}")
+            return 0
+
+        repo_data = data.get('data', {}).get('repository', {})
+        branch_ref = repo_data.get('defaultBranchRef')
+
+        # Empty repos have no default branch
+        if not branch_ref:
+            return 0
+
+        history = branch_ref.get('target', {}).get('history', {})
+        return history.get('totalCount', 0)
+    except Exception as e:
+        print(f"Exception getting commit count for {repo_name}: {e}")
+        return 0
 
 
 def fetch_github_stats_with_loc(username, token=None):
-    headers = {"Authorization": f"token {token}"} if token else {}
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     user_url = f"https://api.github.com/users/{username}"
     repos_url = f"https://api.github.com/users/{username}/repos?per_page=100&type=owner"
@@ -127,49 +129,55 @@ def fetch_github_stats_with_loc(username, token=None):
         if repo.get("fork"):
             continue
 
-        print("Repo Number: ", repo_num)
+        repo_name = repo["name"]
+        print(f"Repo {repo_num}: {repo_name}")
         repo_num += 1
 
-        repo_name = repo["name"]
         default_branch = repo.get("default_branch", "main")
 
-        # Count commits using pagination
-        total_commits += get_commit_count(username, repo_name, headers)
+        try:
+            # Count commits
+            total_commits += get_commit_count(username, repo_name, headers)
 
-        # Fetch tree to count LOC
-        tree_url = f"https://api.github.com/repos/{username}/{repo_name}/git/trees/{default_branch}?recursive=1"
-        tree_resp = requests.get(tree_url, headers=headers)
-        if tree_resp.status_code != 200:
+            # Fetch tree to count LOC
+            tree_url = f"https://api.github.com/repos/{username}/{repo_name}/git/trees/{default_branch}?recursive=1"
+            tree_resp = requests.get(tree_url, headers=headers)
+            if tree_resp.status_code != 200:
+                print(f"  Tree fetch failed ({tree_resp.status_code}), skipping LOC for {repo_name}")
+                continue
+
+            tree = tree_resp.json().get("tree", [])
+
+            for obj in tree:
+                if obj["type"] != "blob":
+                    continue
+
+                path = obj["path"]
+                if any(path.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".exe", ".pdf", ".mp4", ".zip", ".tar", ".ico", ".json", ".svg", ".txt"]):
+                    continue
+
+                blob_url = f"https://api.github.com/repos/{username}/{repo_name}/contents/{path}"
+                blob_resp = requests.get(blob_url, headers=headers)
+                if blob_resp.status_code != 200:
+                    continue
+
+                blob = blob_resp.json()
+                content = blob.get("content")
+                encoding = blob.get("encoding")
+
+                if not content or encoding != "base64":
+                    continue
+
+                try:
+                    decoded = base64.b64decode(content).decode("utf-8", errors="ignore")
+                    loc = len(decoded.strip().splitlines())
+                    total_loc += loc
+                except Exception:
+                    continue
+
+        except Exception as e:
+            print(f"  Error processing repo {repo_name}: {e}")
             continue
-
-        tree = tree_resp.json().get("tree", [])
-
-        for obj in tree:
-            if obj["type"] != "blob":
-                continue
-
-            path = obj["path"]
-            if any(path.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".exe", ".pdf", ".mp4", ".zip", ".tar", ".ico", ".json", ".svg", ".txt"]):
-                continue
-
-            blob_url = f"https://api.github.com/repos/{username}/{repo_name}/contents/{path}"
-            blob_resp = requests.get(blob_url, headers=headers)
-            if blob_resp.status_code != 200:
-                continue
-
-            blob = blob_resp.json()
-            content = blob.get("content")
-            encoding = blob.get("encoding")
-
-            if not content or encoding != "base64":
-                continue
-
-            try:
-                decoded = base64.b64decode(content).decode("utf-8", errors="ignore")
-                loc = len(decoded.strip().splitlines())
-                total_loc += loc
-            except Exception:
-                continue
 
     return {
         "repos": total_repos,
